@@ -52,6 +52,9 @@ class Follower:
         def calcY(line, x):
             return int((-line[4])*(x - line[0]) + line[1])
 
+        def calcX(line, y):
+            return int((y - line[1]) / (-line[4]) + line[0])
+
         def turnArc(clockwise, forward_speed, degree):
             self.start = self.degree
             if not clockwise:
@@ -201,6 +204,11 @@ class Follower:
                     
                     highest = min(calcY(frontLine, 0), calcY(frontLine, w))
 
+                    lowest = max(calcY(frontLine, 0), calcY(frontLine, w))
+
+                    leftCrossPoint = calcX(leftLine, lowest+9)
+
+
                     # Get 9*9 average color to recognize whether it is a cross road or dead end
                     # print highest, mask[highest][w/2]
                     average = 0
@@ -208,23 +216,27 @@ class Follower:
                         for j in range(w/2-4, w/2+5):
                             average += mask[i][j]
                     average /= 81
-                    
 
-                    if average < 128:
+                    averageLeft = 0
+                    for i in range(lowest, lowest + 9):
+                        for j in range(leftCrossPoint-9, leftCrossPoint):
+                            averageLeft += mask[i][j]
+                    averageLeft /= 81
+
+                    if averageLeft < 128:
                         turnArc(False, ARC_FORWARDING_SPD, 90)
-                    else:
+                    elif average >= 128:
                         turnArc(False, 0, 180)
                     cv2.line(image,(leftLine[0], leftLine[1]),(leftLine[2], leftLine[3]),(0,0,255),2)
                     cv2.line(image,(rightLine[0], rightLine[1]),(rightLine[2], rightLine[3]),(0,255,255),2)
                 else:
                     if leftLine is None and rightLine is None:
-                        #turn90Arc(False)
-                        pass
+                        turnArc(False, ARC_FORWARDING_SPD, 90)
                     else:
-                        if leftLine is not None:
+                        if leftLine is not None: #right turn
                             turnArc(True, ARC_FORWARDING_SPD, 90)
                             cv2.line(image,(leftLine[0], leftLine[1]),(leftLine[2], leftLine[3]),(0,0,255),2)
-                        if rightLine is not None:
+                        if rightLine is not None:#left turn
                             turnArc(False, ARC_FORWARDING_SPD, 90)
                             cv2.line(image,(rightLine[0], rightLine[1]),(rightLine[2], rightLine[3]),(0,255,255),2)
 
