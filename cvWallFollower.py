@@ -119,7 +119,7 @@ class Follower:
 
         
 
-        leftLine = None
+        leftLine = None/
         rightLine = None
         frontLine = None
         
