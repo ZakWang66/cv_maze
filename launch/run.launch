@@ -1,0 +1,4 @@
+<launch>
+    <node name="main" pkg="cv_maze" type="main.py" output="log"/>
+    <node name="lineDetectorServer" pkg="cv_maze" type="lineDetectorServer.py" output="log"/>
+</launch>

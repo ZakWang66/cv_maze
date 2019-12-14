@@ -1,0 +1,23 @@
+# This is an action definition file, which has three parts: 
+# the goal, the result, and the feedback.
+
+# Part 1: the goal, to be sent by the client
+
+float32 degree_to_turn
+
+---
+
+# Part 2: the result, to be sent by the server upon completion
+
+duration time_elapsed
+
+# How many updates we provided along the way
+# uint32 updates_sent
+
+---
+
+# Part 3: the feedback, to be sent periodically by the server during execution.
+
+duration time_elapsed
+
+float32 current_degree

@@ -1,0 +1,11 @@
+int32[] leftLine
+int32[] rightLine
+int32[] frontLine
+bool wallLeft
+bool wallRight
+bool wallFront
+int16 leftIntersect
+int16 rightIntersect
+int16 frontMidY
+int16 imgH
+int16 imgW
