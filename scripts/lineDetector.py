@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-import time
-import rospy, cv2, cv_bridge, numpy
-from itertools import chain 
+import rospy
+import cv2
+import cv_bridge
+import numpy
 from cv_maze.msg import LineData
 from sensor_msgs.msg import Image
+
 
 def image_callback(msg):
 
@@ -16,21 +18,18 @@ def image_callback(msg):
     # get image from camera
     bridge = cv_bridge.CvBridge()
     image = bridge.imgmsg_to_cv2(msg)
-    image = image[len(image) * 3/ 10:]
+    image = image[len(image) * 3 / 10:]
     h, w, d = image.shape
-    #image = cv2.GaussianBlur(image,(3,3),0)
+    # image = cv2.GaussianBlur(image,(3,3),0)
 
     # process image to get lines
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    lower = numpy.array([ 95, 0, 0])
-    upper = numpy.array([ 115, 255, 255])
-    grayImage = cv2.cvtColor(hsv,cv2.COLOR_BGR2GRAY)
-    ret,mask = cv2.threshold(grayImage,127,255,cv2.THRESH_BINARY)
 
-
+    grayImage = cv2.cvtColor(hsv, cv2.COLOR_BGR2GRAY)
+    ret, mask = cv2.threshold(grayImage, 127, 255, cv2.THRESH_BINARY)
 
     edges = cv2.Canny(mask, 150, 200)
-    lines = cv2.HoughLines(edges,1,numpy.pi/180,100)
+    lines = cv2.HoughLines(edges, 1, numpy.pi / 180, 100)
 
     # get the three critical lines
     leftLine = None
@@ -40,7 +39,7 @@ def image_callback(msg):
     maxK = 0
     horizentalK = 0.05
     # print(len(lines))
-    if not lines is None:
+    if lines is not None:
         for line in lines:
             line = line[0]
             rho = line[0]
@@ -65,11 +64,10 @@ def image_callback(msg):
                 elif k < 0 and k < minK:
                     minK = k
                     rightLine = x1, y1, x2, y2, k
-                    
+
             if abs(k) < horizentalK:
                 horizentalK = abs(k)
                 frontLine = x1, y1, x2, y2, k
-    
 
     # determin whether there are walls at left, right and front
     # Get 9*9 average color to recognize whether it is a cross road or dead end
@@ -96,7 +94,7 @@ def image_callback(msg):
                     continue
                 averageFront += mask[i][j]
                 count += 1
-                img[i,j,:] = mask[i,j]
+                img[i, j, :] = mask[i, j]
         averageFront /= count
         if averageFront > 127:
             wallFront = True
@@ -115,25 +113,25 @@ def image_callback(msg):
                     continue
                 averageLeft += mask[i][j]
                 count += 1
-                img[i,j,:] = mask[i,j]
+                img[i, j, :] = mask[i, j]
         averageLeft /= count
         if averageLeft > 127:
             wallLeft = True
-    
+
     if rightLine is not None and len(rightLine) != 0:
         rightIntersect = calcY(rightLine, w)
-        
-    
+
     if leftLine is not None and len(leftLine) != 0:
-        cv2.line(img,(leftLine[0], leftLine[1]),(leftLine[2], leftLine[3]),(0,0,255),2)
+        cv2.line(img, (leftLine[0], leftLine[1]), (leftLine[2], leftLine[3]), (0, 0, 255), 2)
     if rightLine is not None and len(rightLine) != 0:
-        cv2.line(img,(rightLine[0], rightLine[1]),(rightLine[2], rightLine[3]),(0,255,255),2)
+        cv2.line(img, (rightLine[0], rightLine[1]), (rightLine[2], rightLine[3]), (0, 255, 255), 2)
     if frontLine is not None and len(frontLine) != 0:
-        cv2.line(img,(frontLine[0], frontLine[1]),(frontLine[2], frontLine[3]),(0,255,0),2)
+        cv2.line(img, (frontLine[0], frontLine[1]), (frontLine[2], frontLine[3]), (0, 255, 0), 2)
     cv2.imshow("image", img)
     cv2.waitKey(3)
 
     pubLine.publish(leftLine, rightLine, frontLine, wallLeft, False, wallFront, leftIntersect, rightIntersect, frontMidY, h, w)
+
 
 rospy.init_node('line_detector')
 image_sub = rospy.Subscriber('camera/image', Image, image_callback)

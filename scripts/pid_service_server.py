@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-import math, time
-import rospy, numpy
+import rospy
 from collections import deque
 from cv_maze.srv import Pid, PidResponse
 
@@ -12,7 +11,13 @@ HISTORY_SIZE = 10
 timeStamp_history = deque(maxlen=HISTORY_SIZE)
 err_history = deque(maxlen=HISTORY_SIZE)
 
+
 def callback(request):
+    if request.restart:
+        timeStamp_history = deque(maxlen=HISTORY_SIZE)
+        err_history = deque(maxlen=HISTORY_SIZE)
+        return PidResponse(0)
+
     timeStamp = request.timeStamp
     err = request.err
     timeStamp_history.appendleft(timeStamp)
@@ -21,11 +26,10 @@ def callback(request):
     iTerm = 0
     dTerm = 0
     if len(err_history) >= 2:
+        dTerm = (err_history[0] - err_history[1]) * (timeStamp_history[0] - timeStamp_history[1])
         for i in range(len(err_history) - 1):
             iTerm += (err_history[i] + err_history[i+1]) * (timeStamp_history[i] - timeStamp_history[i+1]) / 2
-            dTerm += (err_history[i] - err_history[i+1]) * (timeStamp_history[i] - timeStamp_history[i+1])
         iTerm /= len(err_history) - 1
-        dTerm /= len(err_history) - 1
     pid = PP * err + II * iTerm + DD * dTerm
     print err, iTerm, dTerm
     return PidResponse(pid)
