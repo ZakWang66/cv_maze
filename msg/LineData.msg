@@ -1,6 +1,6 @@
-int32[] leftLine
-int32[] rightLine
-int32[] frontLine
+float64[] leftLine
+float64[] rightLine
+float64[] frontLine
 bool wallLeft
 bool wallRight
 bool wallFront

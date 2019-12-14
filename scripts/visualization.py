@@ -18,9 +18,9 @@ def image_callback(msg):
 
     if line_info is not None:
 
-        leftLine = line_info.leftLine
-        rightLine = line_info.rightLine
-        frontLine = line_info.frontLine
+        leftLine = [int(i) for i in line_info.leftLine]
+        rightLine = [int(i) for i in line_info.rightLine]
+        frontLine = [int(i) for i in line_info.frontLine]
         leftIntersect = line_info.leftIntersect
         rightIntersect = line_info.rightIntersect
 
@@ -53,4 +53,5 @@ def line_callback(msg):
 rospy.init_node('visualization')
 image_sub = rospy.Subscriber('camera/image', Image, image_callback)
 line_sub = rospy.Subscriber('/line_detection', LineData, line_callback)
+print '[visualization] presenting...'
 rospy.spin()

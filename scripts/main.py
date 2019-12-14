@@ -4,7 +4,7 @@ import rospy
 from geometry_msgs.msg import Twist
 from cv_maze.srv import Pid
 import actionlib
-from cv_maze.msg import ConnerAction, ConnerGoal, LineData
+from cv_maze.msg import CornersAction, CornersGoal, LineData
 
 # DRAW
 DOT_R = 10
@@ -17,39 +17,54 @@ FORWARDING_SPD = 0.19
 
 line_info = None
 logcount = 0
-inConner = False
+inCorner = False
+
+line_updated = False
 
 
 def line_callback(msg):
     global line_info
+    global line_updated
     line_info = msg
+    line_updated = True
 
 
 def action_done_cb(status, result):
-    global inConner
-    inConner = False
+    global inCorner
+    inCorner = False
+    print "[main] corner completed, type code: ", result.situationType
 
 
 rospy.init_node('main')
 
 line_sub = rospy.Subscriber('/line_detection', LineData, line_callback)
 
-cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
+cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
 twist = Twist()
 
 rospy.wait_for_service('pid_server')
 pid = rospy.ServiceProxy('pid_server', Pid)
 
-action_client = actionlib.SimpleActionClient('conner', ConnerAction)
+action_client = actionlib.SimpleActionClient('corners', CornersAction)
 action_client.wait_for_server()
 
-print "maze solver started"
+print "[main] maze solver started"
 
-while True:
+rate = rospy.Rate(10000)
+
+# To determin the situation of the front line
+hasFrontWallCount = 0
+imgCount = 0
+
+while not rospy.is_shutdown():
 
     leftLine = None
     rightLine = None
     frontLine = None
+
+    if line_info is None:
+        continue
+
     leftIntersect = line_info.leftIntersect
     rightIntersect = line_info.rightIntersect
     h = line_info.imgH
@@ -66,7 +81,7 @@ while True:
         if leftLine is not None and rightLine is not None:
             twist.linear.x = FORWARDING_SPD
             err = float(rightIntersect - leftIntersect)
-            twist.angular.z = pid(time.time(), err, False) / 500
+            twist.angular.z = pid(time.time(), err, False).err_pid / 500
         else:
             twist.linear.x = 0
             # No clue, turn left by default
@@ -81,13 +96,31 @@ while True:
     else:
         # When see the wall ahead, use the line of wall 's k to keep go straight until the wall is too close
         if line_info.frontMidY < h/2:
-            err = frontLine[4] * 10000
+            twist.linear.x = FORWARDING_SPD * (float(h/2 - line_info.frontMidY) / float(h/2) + 0.2)
+            # print frontLine[4]
+            twist.angular.z = frontLine[4] * 10
+            if line_updated:
+                line_updated = False
+                imgCount += 1
+                if line_info.wallFront:
+                    hasFrontWallCount += 1
         else:
-            # Wall is close, need to turn 90 degree conner (maybe cross way) or turn 180 degree back
-            action_client.send_goal(ConnerGoal(), done_cb=action_done_cb)
-            inConner = True
-            while inConner:
-                pass
+            # Wall is close, need to turn 90 degree Corner (maybe cross way) or turn 180 degree back
+            cGoal = CornersGoal()
+            if imgCount != 0:
+                chance = float(hasFrontWallCount) / float(imgCount)
+                cGoal.hasFrontWall = (chance > 0.5)
+                hasFrontWallCount = 0
+                imgCount = 0
+            else:
+                cGoal.hasFrontWall = line_info.wallFront
+
+            action_client.send_goal(cGoal, done_cb=action_done_cb)
+            inCorner = True
+            print "[main] start a corner case"
+            while inCorner:
+                rate.sleep()
 
     logcount += 1
     cmd_vel_pub.publish(twist)
+    rate.sleep()

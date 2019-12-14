@@ -13,6 +13,9 @@ err_history = deque(maxlen=HISTORY_SIZE)
 
 
 def callback(request):
+    global timeStamp_history
+    global err_history
+
     if request.restart:
         timeStamp_history = deque(maxlen=HISTORY_SIZE)
         err_history = deque(maxlen=HISTORY_SIZE)
@@ -31,11 +34,11 @@ def callback(request):
             iTerm += (err_history[i] + err_history[i+1]) * (timeStamp_history[i] - timeStamp_history[i+1]) / 2
         iTerm /= len(err_history) - 1
     pid = PP * err + II * iTerm + DD * dTerm
-    print err, iTerm, dTerm
+    # print err, iTerm, dTerm
     return PidResponse(pid)
 
 
 rospy.init_node('pid_server')
 service = rospy.Service('pid_server', Pid, callback)
-
+print '[pid_server] started...'
 rospy.spin()

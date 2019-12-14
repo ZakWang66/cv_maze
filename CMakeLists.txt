@@ -60,6 +60,8 @@ add_service_files(
 ## Generate actions in the 'action' folder
 add_action_files(
   FILES
+  Corners.action
+  Forward.action
   Turn.action
 )
 
@@ -100,6 +102,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
+  CATKIN_DEPENDS actionlib_msgs 
 #  INCLUDE_DIRS include
 #  LIBRARIES cv_maze
 #  CATKIN_DEPENDS roscpp rospy std_msgs
@@ -156,10 +159,16 @@ include_directories(
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(PROGRAMS
+  scripts/lineDetector.py
+  scripts/forward_action_server.py
+  scripts/turn_action_server.py
+  scripts/corner_handle_action_server.py
+  scripts/pid_service_server.py
+  scripts/main.py
+  scripts/visualization.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
