@@ -3,7 +3,7 @@ import rospy
 import cv2
 import cv_bridge
 from cv_maze.msg import LineData
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 
 line_info = None
 
@@ -12,7 +12,14 @@ def image_callback(msg):
     global line_info
     # get image from camera
     bridge = cv_bridge.CvBridge()
-    image = bridge.imgmsg_to_cv2(msg)
+    image = bridge.compressed_imgmsg_to_cv2(msg)
+
+    # rotate 180
+    h, w = image.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, 180, 1)
+    image = cv2.warpAffine(image, M, (w, h))
+
     image = image[len(image) * 3 / 10:]
     h, w, d = image.shape
 
@@ -51,7 +58,7 @@ def line_callback(msg):
 
 
 rospy.init_node('visualization')
-image_sub = rospy.Subscriber('camera/image', Image, image_callback)
+image_sub = rospy.Subscriber('/raspicam_node/image/compressed', CompressedImage, image_callback)
 line_sub = rospy.Subscriber('/line_detection', LineData, line_callback)
 print '[visualization] presenting...'
 rospy.spin()

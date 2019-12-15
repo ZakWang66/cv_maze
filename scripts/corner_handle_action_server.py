@@ -27,7 +27,7 @@ def line_callback(msg):
 def action_callback(goal):
 
     start_time = time.time()
-    rate = rospy.Rate(10000)
+    rate = rospy.Rate(1000)
 
     def getLineStatisticsRes(scan_range, side):
         global Moving

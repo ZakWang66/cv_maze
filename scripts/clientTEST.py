@@ -14,7 +14,6 @@ def action_done_cb(status, result):
     global startTime
     print "Time Ellapse1: ", result.time_elapsed.to_sec()
     # print "Time Ellapse2: ", time.time() - startTime
-    print "current pos: ", result.currentPose
     print status
     Turning = False
 
@@ -28,25 +27,26 @@ rospy.init_node('client')
 #     print res
 
 
-forward_action_client = actionlib.SimpleActionClient('forward', ForwardAction)
-forward_action_client.wait_for_server()
-forward_goal = ForwardGoal()
-forward_goal.goalIncre = input("go how much :")
+# forward_action_client = actionlib.SimpleActionClient('forward', ForwardAction)
+# forward_action_client.wait_for_server()
+# forward_goal = ForwardGoal()
+# forward_goal.goalIncre = input("go how much :")
 
-forward_action_client.send_goal(forward_goal, done_cb=action_done_cb)
-rospy.spin()
+# forward_action_client.send_goal(forward_goal, done_cb=action_done_cb)
 
-# action_client = actionlib.SimpleActionClient('turn', TurnAction)
-# action_client.wait_for_server()
-# goal = TurnGoal()
+action_client = actionlib.SimpleActionClient('turn', TurnAction)
+action_client.wait_for_server()
+goal = TurnGoal()
 
 
-# startTime = time.time()
-# goal.degree_to_turn = 20
-# Turning = True
-# action_client.send_goal(goal, done_cb = action_done_cb)
-# while Turning:
-#     pass
+startTime = time.time()
+goal.degree_to_turn = 20
+Turning = True
+action_client.send_goal(goal, done_cb=action_done_cb)
+rate = rospy.Rate(1000)
+while Turning:
+    rate.sleep()
+print "done"
 
 # startTime = time.time()
 # goal.degree_to_turn = -40

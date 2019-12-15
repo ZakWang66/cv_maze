@@ -39,7 +39,7 @@ rospy.init_node('main')
 
 line_sub = rospy.Subscriber('/line_detection', LineData, line_callback)
 
-cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
+cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
 twist = Twist()
 
 rospy.wait_for_service('pid_server')
@@ -50,7 +50,7 @@ action_client.wait_for_server()
 
 print "[main] maze solver started"
 
-rate = rospy.Rate(10000)
+rate = rospy.Rate(1000)
 
 # To determin the situation of the front line
 hasFrontWallCount = 0
@@ -77,7 +77,7 @@ while not rospy.is_shutdown():
     if line_info.frontLine is not None and len(line_info.frontLine) != 0:
         frontLine = line_info.frontLine
 
-    if frontLine is None or line_info.frontMidY < h/4:
+    if frontLine is None or line_info.frontMidY < h / 4:
         if leftLine is not None and rightLine is not None:
             twist.linear.x = FORWARDING_SPD
             err = float(rightIntersect - leftIntersect)
@@ -95,8 +95,8 @@ while not rospy.is_shutdown():
                     twist.angular.z = STATIC_TURN_SPD
     else:
         # When see the wall ahead, use the line of wall 's k to keep go straight until the wall is too close
-        if line_info.frontMidY < h/2:
-            twist.linear.x = FORWARDING_SPD * (float(h/2 - line_info.frontMidY) / float(h/2) + 0.2)
+        if line_info.frontMidY < h / 2:
+            twist.linear.x = FORWARDING_SPD * (float(h / 2 - line_info.frontMidY) / float(h / 2) + 0.2)
             # print frontLine[4]
             twist.angular.z = frontLine[4] * 10
             if line_updated:
@@ -107,6 +107,10 @@ while not rospy.is_shutdown():
         else:
             # Wall is close, need to turn 90 degree Corner (maybe cross way) or turn 180 degree back
             cGoal = CornersGoal()
+            twist.linear.x = 0
+            twist.angular.z = 0
+            cmd_vel_pub.publish(twist)
+
             if imgCount != 0:
                 chance = float(hasFrontWallCount) / float(imgCount)
                 cGoal.hasFrontWall = (chance > 0.5)
