@@ -20,4 +20,4 @@ duration time_elapsed
 
 duration time_elapsed
 
-float32 current_degree
+# float32 current_degree

@@ -4,23 +4,30 @@ import cv2
 import cv_bridge
 import numpy
 from cv_maze.msg import LineData
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 
 
 def image_callback(msg):
 
     def calcY(line, x):
-        return int((-line[4])*(x - line[0]) + line[1])
+        return int((-line[4]) * (x - line[0]) + line[1])
 
     def calcX(line, y):
         return int((y - line[1]) / (-line[4]) + line[0])
 
     # get image from camera
     bridge = cv_bridge.CvBridge()
-    image = bridge.imgmsg_to_cv2(msg)
+    image = bridge.compressed_imgmsg_to_cv2(msg)
+
+    # rotate 180
+    h, w = image.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, 180, 1)
+    image = cv2.warpAffine(image, M, (w, h))
+
     image = image[len(image) * 3 / 10:]
     h, w, d = image.shape
-    # image = cv2.GaussianBlur(image,(3,3),0)
+    # image = cv2.Gau\ssianBlur(image,(3,3),0)
 
     # process image to get lines
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -29,7 +36,7 @@ def image_callback(msg):
     ret, mask = cv2.threshold(grayImage, 127, 255, cv2.THRESH_BINARY)
 
     edges = cv2.Canny(mask, 150, 200)
-    lines = cv2.HoughLines(edges, 1, numpy.pi / 180, 100)
+    lines = cv2.HoughLines(edges, 1, numpy.pi / 180, 80)
 
     # get the three critical lines
     leftLine = None
@@ -46,16 +53,16 @@ def image_callback(msg):
             theta = line[1]
             a = numpy.cos(theta)
             b = numpy.sin(theta)
-            x0 = a*rho
-            y0 = b*rho
-            x1 = int(x0 + 1000*(-b))
-            y1 = int(y0 + 1000*(a))
-            x2 = int(x0 - 1000*(-b))
-            y2 = int(y0 - 1000*(a))
+            x0 = a * rho
+            y0 = b * rho
+            x1 = int(x0 + 1000 * (-b))
+            y1 = int(y0 + 1000 * (a))
+            x2 = int(x0 - 1000 * (-b))
+            y2 = int(y0 - 1000 * (a))
             if b == 0:
                 k = float("inf")
             else:
-                k = a/b
+                k = a / b
 
             if (abs(k) < 3 and abs(k) > 0.3):
                 if k > 0 and k > maxK:
@@ -82,12 +89,12 @@ def image_callback(msg):
 
     count = 0
     if frontLine is not None and len(frontLine) != 0:
-        middle = w/2
+        middle = w / 2
         y = calcY(frontLine, middle)
         frontMidY = y
         averageFront = 0
-        for i in range(y-11, y-2):
-            for j in range(middle-4, middle+5):
+        for i in range(y - 11, y - 2):
+            for j in range(middle - 4, middle + 5):
                 if i < 0 or i >= h:
                     continue
                 if j < 0 or j >= w:
@@ -103,11 +110,11 @@ def image_callback(msg):
     count = 0
     if leftLine is not None and len(leftLine) != 0:
         leftIntersect = calcY(leftLine, 0)
-        middle = 2*h/3
+        middle = 2 * h / 3
         x = calcX(leftLine, middle)
         averageLeft = 0
         for i in range(middle - 4, middle + 5):
-            for j in range(x-11, x-2):
+            for j in range(x - 11, x - 2):
                 if i < 0 or i >= h:
                     continue
                 if j < 0 or j >= w:
@@ -136,6 +143,6 @@ def image_callback(msg):
 
 
 rospy.init_node('line_detector')
-image_sub = rospy.Subscriber('camera/image', Image, image_callback)
+image_sub = rospy.Subscriber('/raspicam_node/image/compressed', CompressedImage, image_callback)
 pubLine = rospy.Publisher('/line_detection', LineData, queue_size=10)
 rospy.spin()

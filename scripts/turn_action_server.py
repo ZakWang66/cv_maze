@@ -7,7 +7,7 @@ from cv_maze.msg import TurnAction, TurnResult, TurnFeedback
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 
-SPEED = 0.4
+SPEED = 0.15
 
 degree = 0
 lastDegree = 0
@@ -41,9 +41,14 @@ def action_callback(goal):
     speed = SPEED
     if goal.degree_to_turn < 0:
         speed = -SPEED
+    twist.angular.z = speed
+    # cmd_vel_pub.publish(twist)
+    # cmd_vel_pub.publish(twist) 
+    # cmd_vel_pub.publish(twist)   
 
     feedback = TurnFeedback()
 
+    rate = rospy.Rate(1000)
     while hasTurned < degreeToTurn:
 
         accumulate = abs(degree - lastDegree)
@@ -57,18 +62,20 @@ def action_callback(goal):
         hasTurned += accumulate
         lastDegree = degree
 
-        twist.angular.z = speed * ((degreeToTurn - hasTurned) / degreeToTurn + 0.2)
+        twist.angular.z = speed  # * ((degreeToTurn - hasTurned) / degreeToTurn + 0.2)
+        twist.linear.x = 0
         cmd_vel_pub.publish(twist)
         feedback.time_elapsed = rospy.Duration.from_sec(time.time() - start_time)
         feedback.current_degree = degree
         server.publish_feedback(feedback)
+        rate.sleep()
 
+    print "done"
     twist.angular.z = 0
     cmd_vel_pub.publish(twist)
     result = TurnResult()
     result.time_elapsed = rospy.Duration.from_sec(time.time() - start_time)
     server.set_succeeded(result, "Turning completed successfully")
-
 
 rospy.init_node('turn_action_server')
 sub = rospy.Subscriber('/odom', Odometry, odom_callback)
