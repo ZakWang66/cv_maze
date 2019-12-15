@@ -66,7 +66,7 @@ def action_callback(goal):
         twist.linear.x = 0
         cmd_vel_pub.publish(twist)
         feedback.time_elapsed = rospy.Duration.from_sec(time.time() - start_time)
-        feedback.current_degree = degree
+        #feedback.current_degree = degree
         server.publish_feedback(feedback)
         rate.sleep()
 

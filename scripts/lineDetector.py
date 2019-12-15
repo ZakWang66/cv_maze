@@ -5,7 +5,7 @@ import cv_bridge
 import numpy
 from cv_maze.msg import LineData
 from sensor_msgs.msg import CompressedImage
-
+#from sensor_msgs.msg import Image
 
 def image_callback(msg):
 
@@ -18,6 +18,7 @@ def image_callback(msg):
     # get image from camera
     bridge = cv_bridge.CvBridge()
     image = bridge.compressed_imgmsg_to_cv2(msg)
+    #image = bridge.imgmsg_to_cv2(msg)
 
     # rotate 180
     h, w = image.shape[:2]
@@ -144,5 +145,6 @@ def image_callback(msg):
 
 rospy.init_node('line_detector')
 image_sub = rospy.Subscriber('/raspicam_node/image/compressed', CompressedImage, image_callback)
+#image_sub = rospy.Subscriber('camera/image', Image, image_callback)
 pubLine = rospy.Publisher('/line_detection', LineData, queue_size=10)
 rospy.spin()

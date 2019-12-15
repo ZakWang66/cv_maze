@@ -23,6 +23,7 @@ def line_callback(msg):
     line_info = msg
     line_updated = True
 
+'''
 
 def action_callback(goal):
 
@@ -137,7 +138,7 @@ def action_callback(goal):
 
     result.time_elapsed = rospy.Duration.from_sec(time.time() - start_time)
     server.set_succeeded(result)
-
+'''
     # # Wall is close, need to turn 90 degree corner (maybe cross way) or turn 180 degree back
 
     # if hasLeftLine and hasRightLine is not None:
@@ -165,6 +166,123 @@ def action_callback(goal):
     #             turnArc(True, ARC_FORWARDING_SPD, 90)
     #         if hasRightLine:
     #             turnArc(False, ARC_FORWARDING_SPD, 90)
+
+def action_callback(goal):
+
+    start_time = time.time()
+    rate = rospy.Rate(1000)
+
+    def getLineStatisticsRes(scan_range, side):
+        global Moving
+        global line_info
+        global line_updated
+
+        turn_goal.degree_to_turn = scan_range
+        turn_action_client.send_goal(turn_goal, done_cb=action_done_cb)
+
+        Moving = True
+        hasLineCount = 0
+        hasWallCount = 0
+        imgCount = 0
+        while Moving:
+            if line_updated:
+                line_updated = False
+                imgCount += 1
+                line = line_info.leftLine
+                if side:
+                    line = line_info.rightLine
+                if line is not None and len(line) != 0:
+                    hasLineCount += 1
+                    if not side:
+                        if line_info.wallLeft:
+                            hasWallCount += 1
+
+            rate.sleep()
+        return hasWallCount, hasLineCount, imgCount
+
+    turn_goal = TurnGoal()
+    forward_goal = ForwardGoal()
+
+    hasLeftLine = False
+    hasLeftWall = False
+    hasRightLine = False
+    hasFrontWall = goal.hasFrontWall
+
+    # Left
+    hasWallCount1, hasLineCount1, imgCount1 = getLineStatisticsRes(SCAN_RANGE, False)
+    hasWallCount2, hasLineCount2, imgCount2 = getLineStatisticsRes(-SCAN_RANGE, False)
+
+    chanceLine = float(hasLineCount1 + hasLineCount2) / float(imgCount1 + imgCount2)
+    if chanceLine > CHANCE_THRESHOLD:
+        hasLeftLine = True
+    chanceWall = float(hasWallCount1 + hasWallCount2) / float(imgCount1 + imgCount2)
+    if chanceWall > 0.5:
+        hasLeftWall = True
+
+    # print chanceLine, chanceWall, hasLeftLine, hasLeftWall, hasFrontWall
+
+    # Right
+    
+
+    # print chanceLine, hasRightLine
+    # print '\n'
+
+    def forward(distance):
+        global Moving
+        forward_goal.goalIncre = distance
+        forward_action_client.send_goal(forward_goal, done_cb=action_done_cb)
+        Moving = True
+        while Moving:
+            rate.sleep()
+
+    def turn(degree):
+        global Moving
+        turn_goal.degree_to_turn = degree
+        turn_action_client.send_goal(turn_goal, done_cb=action_done_cb)
+        Moving = True
+        while Moving:
+            rate.sleep()
+
+    result = CornersResult()
+
+    if not hasLeftLine:
+        print "[node: corner_handel_action_server] left turn case"
+        forward(0.35)
+        turn(90)
+        result.situationType = 2 #include case 1 and 2
+    else:
+        if not hasFrontWall:
+            if hasLeftWall:
+                print "[node: corner_handel_action_server] ahead T shape road case"
+                forward(0.6)
+                result.situationType = 4
+            else:
+                print "[node: corner_handel_action_server] left T shape road case"
+                forward(0.35)
+                turn(90)
+                result.situationType = 5
+        else:
+            _, hasLineCount1, imgCount1 = getLineStatisticsRes(-SCAN_RANGE, True)
+            _, hasLineCount2, imgCount2 = getLineStatisticsRes(SCAN_RANGE, True)
+
+            chanceLine = float(hasLineCount1 + hasLineCount2) / float(imgCount1 + imgCount2)
+            if chanceLine > CHANCE_THRESHOLD:
+                hasRightLine = True
+            if hasRightLine:
+                print "[node: corner_handel_action_server] dead end case"
+                turn(180)
+                result.time_elapsed = rospy.Duration.from_sec(time.time() - start_time)
+                result.situationType = 0
+                server.set_succeeded(result)
+                return
+            else:
+                print "[node: corner_handel_action_server] right turn case"
+                forward(0.35)
+                turn(-90)
+                result.situationType = 3
+
+    result.time_elapsed = rospy.Duration.from_sec(time.time() - start_time)
+    server.set_succeeded(result)
 
 
 rospy.init_node('corner_handle_action_server')
