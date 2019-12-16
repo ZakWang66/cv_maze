@@ -31,10 +31,10 @@ def callback(request):
     if len(err_history) >= 2:
         dTerm = (err_history[0] - err_history[1]) * (timeStamp_history[0] - timeStamp_history[1])
         for i in range(len(err_history) - 1):
-            iTerm += (err_history[i] + err_history[i+1]) * (timeStamp_history[i] - timeStamp_history[i+1]) / 2
+            iTerm += (err_history[i] + err_history[i + 1]) * (timeStamp_history[i] - timeStamp_history[i + 1]) / 2
         iTerm /= len(err_history) - 1
     pid = PP * err + II * iTerm + DD * dTerm
-    # print err, iTerm, dTerm
+    # print '[pid_server]', err, iTerm, dTerm
     return PidResponse(pid)
 
 

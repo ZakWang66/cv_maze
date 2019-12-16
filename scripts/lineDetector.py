@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-import math
 import rospy
 import cv2
 import cv_bridge
 import numpy
 from cv_maze.msg import LineData
 from sensor_msgs.msg import CompressedImage
-#from sensor_msgs.msg import Image
+# from sensor_msgs.msg import Image
 
 
 def image_callback(msg):
@@ -20,7 +19,7 @@ def image_callback(msg):
     # get image from camera
     bridge = cv_bridge.CvBridge()
     image = bridge.compressed_imgmsg_to_cv2(msg)
-    #image = bridge.imgmsg_to_cv2(msg)
+    # image = bridge.imgmsg_to_cv2(msg)
 
     # rotate 180
     h, w = image.shape[:2]
@@ -122,9 +121,6 @@ def image_callback(msg):
     count = 0
     if leftLine is not None and len(leftLine) != 0:
         leftIntersect = calcY(leftLine, 0)
-        # if frontLine is not None and len(frontLine) != 0:
-        #     middle = max(calcY(frontLine, 0), calcY(frontLine, w))
-        # else:
         middle = 2 * h / 3
         x = calcX(leftLine, middle)
         averageLeft = 0
@@ -151,7 +147,7 @@ def image_callback(msg):
         cv2.line(img, (rightLine[0], rightLine[1]), (rightLine[2], rightLine[3]), (0, 255, 255), 2)
     if frontLine is not None and len(frontLine) != 0:
         cv2.line(img, (frontLine[0], frontLine[1]), (frontLine[2], frontLine[3]), (0, 255, 0), 2)
-    
+
     cv2.imshow("image", img)
     cv2.imshow("hsv", hsv)
     cv2.imshow("gray", grayImage)
@@ -163,6 +159,6 @@ def image_callback(msg):
 
 rospy.init_node('line_detector')
 image_sub = rospy.Subscriber('/raspicam_node/image/compressed', CompressedImage, image_callback)
-#image_sub = rospy.Subscriber('camera/image', Image, image_callback)
+# image_sub = rospy.Subscriber('camera/image', Image, image_callback)
 pubLine = rospy.Publisher('/line_detection', LineData, queue_size=10)
 rospy.spin()

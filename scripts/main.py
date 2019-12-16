@@ -6,19 +6,10 @@ from cv_maze.srv import Pid
 import actionlib
 from cv_maze.msg import CornersAction, CornersGoal, LineData
 
-# DRAW
-DOT_R = 10
-
-DISTANCE_TO_WALL = 100
-HISTORY_SIZE = 10
-
-STATIC_TURN_SPD = 0.3
 FORWARDING_SPD = 0.06
 
 line_info = None
-logcount = 0
 inCorner = False
-
 line_updated = False
 
 
@@ -52,7 +43,7 @@ print "[main] maze solver started"
 
 rate = rospy.Rate(1000)
 
-# To determin the situation of the front line
+# To determin the situation of whether there is a front wall
 hasFrontWallCount = 0
 imgCount = 0
 
@@ -103,7 +94,7 @@ while not rospy.is_shutdown():
     cmd_vel_pub.publish(twist)
 
     if frontLine is not None and line_info.frontMidY > h / 2:
-        # Wall is close, need to turn 90 degree Corner (maybe cross way) or turn 180 degree back
+        # Wall is close, call action to solve a corner case
         cGoal = CornersGoal()
         twist.linear.x = 0
         twist.angular.z = 0
@@ -123,45 +114,4 @@ while not rospy.is_shutdown():
         while inCorner:
             rate.sleep()
 
-    logcount += 1
     rate.sleep()
-
-    # if frontLine is None or line_info.frontMidY < h * 1 / 4:
-    #     if leftLine is not None and rightLine is not None:
-    #         twist.linear.x = FORWARDING_SPD
-    #         err = float(rightIntersect - leftIntersect)
-    #         twist.angular.z = pid(time.time(), err, False).err_pid / 500
-    #     else:
-    #         # twist.linear.x = 0
-    #         # No clue, # turn left by default
-    #         if leftLine is None and rightLine is None:
-    #             pass
-    #             # twist.angular.z = STATIC_TURN_SPD
-    #         else:
-    #             twist.linear.x = FORWARDING_SPD
-    #             if rightLine is not None:
-    #                 err = float(h - 20 - leftIntersect)
-    #             if leftLine is not None:
-    #                 err = float(rightIntersect - (h - 20))
-    #             twist.angular.z = pid(time.time(), err, False).err_pid / 500
-    #             # # Turn sharply to the direcion that the line cannot be seen
-    #             # if leftLine is not None:
-    #             #     twist.angular.z = -STATIC_TURN_SPD
-    #             # if rightLine is not None:
-    #             #     twist.angular.z = STATIC_TURN_SPD
-    # else:
-    #     # When see the wall ahead, use the line of wall 's k to keep go straight until the wall is too close
-    #     if line_info.frontMidY < h / 2:
-    #         twist.linear.x = FORWARDING_SPD * (float(h / 2 - line_info.frontMidY) / float(h / 2) + 0.2)
-
-    #         if rightLine is not None:
-    #             err = float(h - 20 - leftIntersect)
-    #         if leftLine is not None:
-    #             err = float(rightIntersect - (h - 20))
-    #         twist.angular.z = pid(time.time(), err, False).err_pid / 500
-
-    #         # # print frontLine[4]
-
-    #         # twist.angular.z = frontLine[4] * 10
-
-

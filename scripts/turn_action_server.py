@@ -21,13 +21,15 @@ def odom_callback(msg):
     if degree1 >= 0:
         degree = degree2
     else:
-        degree = 360-degree2
+        degree = 360 - degree2
 
 
 def action_callback(goal):
     global degree
     global lastDegree
     global hasTurned
+
+    print "[turn_action_server] star to turn", goal.degree_to_turn
 
     start_time = time.time()
     lastDegree = degree
@@ -42,10 +44,6 @@ def action_callback(goal):
     if goal.degree_to_turn < 0:
         speed = -SPEED
     twist.angular.z = speed
-    # cmd_vel_pub.publish(twist)
-    # cmd_vel_pub.publish(twist) 
-    # cmd_vel_pub.publish(twist)   
-
     feedback = TurnFeedback()
 
     rate = rospy.Rate(1000)
@@ -62,20 +60,20 @@ def action_callback(goal):
         hasTurned += accumulate
         lastDegree = degree
 
-        twist.angular.z = speed  # * ((degreeToTurn - hasTurned) / degreeToTurn + 0.2)
+        twist.angular.z = speed * ((degreeToTurn - hasTurned) / degreeToTurn + 0.2)
         twist.linear.x = 0
         cmd_vel_pub.publish(twist)
         feedback.time_elapsed = rospy.Duration.from_sec(time.time() - start_time)
-        #feedback.current_degree = degree
         server.publish_feedback(feedback)
         rate.sleep()
 
-    print "done"
     twist.angular.z = 0
     cmd_vel_pub.publish(twist)
+    print "[turn_action_server] done"
     result = TurnResult()
     result.time_elapsed = rospy.Duration.from_sec(time.time() - start_time)
     server.set_succeeded(result, "Turning completed successfully")
+
 
 rospy.init_node('turn_action_server')
 sub = rospy.Subscriber('/odom', Odometry, odom_callback)

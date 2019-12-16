@@ -10,30 +10,30 @@ SPEED = 0.04
 
 def action_callback(goal):
 
+    print '[forward_action_server] start to go forward', goal.goalIncres
     start_time = time.time()
     pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
 
     distance = goal.goalIncre
 
-    speed = Twist()
-    speed.angular.z = 0
-    speed.linear.x = SPEED
+    twist = Twist()
+    twist.angular.z = 0
+    twist.linear.x = SPEED
     if distance < 0:
-        speed.linear.x = -speed.linear.x
+        twist.linear.x = -twist.linear.x
 
-    pub.publish(speed)
+    pub.publish(twist)
 
     rate = rospy.Rate(SPEED / abs(distance) * 100)
-
     i = 0
     while i < 100:
-        pub.publish(speed)
+        pub.publish(twist)
         rate.sleep()
         i += 1
 
-    speed.linear.x = 0
-    pub.publish(speed)
-    print "[forward] get_speed: ", speed
+    twist.linear.x = 0
+    pub.publish(twist)
+    print '[forward_action_server] done'
     result = ForwardResult()
     result.time_elapsed = rospy.Duration.from_sec(time.time() - start_time)
     server.set_succeeded(result, "move forward successfully")
