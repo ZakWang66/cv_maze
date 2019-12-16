@@ -3,7 +3,7 @@ import rospy
 from collections import deque
 from cv_maze.srv import Pid, PidResponse
 
-PP = 1
+PP = 0.0003
 II = 0
 DD = 0
 HISTORY_SIZE = 10

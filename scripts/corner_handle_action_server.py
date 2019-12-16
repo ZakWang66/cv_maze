@@ -245,22 +245,22 @@ def action_callback(goal):
 
     result = CornersResult()
 
-    if not hasLeftLine:
-        print "[node: corner_handel_action_server] left turn case"
-        forward(0.35)
+    if not hasLeftLine or not hasLeftWall:
+        print "[node: corner_handel_action_server] left turn case or left T shape road case"
+        forward(0.41)
         turn(90)
-        result.situationType = 2 #include case 1 and 2
+        result.situationType = 2  # include case 1 and 2
     else:
         if not hasFrontWall:
             if hasLeftWall:
                 print "[node: corner_handel_action_server] ahead T shape road case"
-                forward(0.6)
+                forward(0.55)
                 result.situationType = 4
-            else:
-                print "[node: corner_handel_action_server] left T shape road case"
-                forward(0.35)
-                turn(90)
-                result.situationType = 5
+            # else:
+            #     print "[node: corner_handel_action_server] left T shape road case"
+            #     forward(0.45)
+            #     turn(90)
+            #     result.situationType = 5
         else:
             _, hasLineCount1, imgCount1 = getLineStatisticsRes(-SCAN_RANGE, True)
             _, hasLineCount2, imgCount2 = getLineStatisticsRes(SCAN_RANGE, True)
@@ -270,6 +270,7 @@ def action_callback(goal):
                 hasRightLine = True
             if hasRightLine:
                 print "[node: corner_handel_action_server] dead end case"
+                forward(0.35)
                 turn(180)
                 result.time_elapsed = rospy.Duration.from_sec(time.time() - start_time)
                 result.situationType = 0
@@ -277,7 +278,7 @@ def action_callback(goal):
                 return
             else:
                 print "[node: corner_handel_action_server] right turn case"
-                forward(0.35)
+                forward(0.41)
                 turn(-90)
                 result.situationType = 3
 

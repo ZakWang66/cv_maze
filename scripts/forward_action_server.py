@@ -5,7 +5,7 @@ from geometry_msgs.msg import Twist
 import actionlib
 from cv_maze.msg import ForwardAction, ForwardResult
 
-SPEED = 0.06
+SPEED = 0.04
 
 
 def action_callback(goal):
