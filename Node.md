@@ -1,5 +1,5 @@
 ## Node Introduction
-![Diagram](/images/cornerTurnLeftReal.jpg)
+![Diagram](/images/node_diagram.PNG)
 ### Node corner_handle_action_server
 This node is going to handle situations in maze except straight road, such as left turn, cross roads, T-shape roads. There are 7 diferent corners total and we classify them into 4 groups (turn left, turn right, move forward and turn back)
 
