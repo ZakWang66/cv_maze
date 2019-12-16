@@ -1,0 +1,9 @@
+<launch>
+    <node name="line_detector" pkg="cv_maze" type="lineDetector.py" output="screen"/>
+    <node name="forward_action_server" pkg="cv_maze" type="forward_action_server.py" output="screen"/>
+    <node name="turn_action_server" pkg="cv_maze" type="turn_action_server.py" output="screen"/>
+    <node name="corner_handle_action_server" pkg="cv_maze" type="corner_handle_action_server.py" output="screen"/>
+    <node name="pid_server" pkg="cv_maze" type="pid_service_server.py" output="screen"/>
+    <node name="main" pkg="cv_maze" type="main.py" output="screen"/>
+    <node name="visualization" pkg="cv_maze" type="visualization.py" output="screen"/>
+</launch>

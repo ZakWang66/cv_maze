@@ -1,0 +1,11 @@
+float64[] leftLine
+float64[] rightLine
+float64[] frontLine
+bool wallLeft
+bool wallRight
+bool wallFront
+int16 leftIntersect
+int16 rightIntersect
+int16 frontMidY
+int16 imgH
+int16 imgW
