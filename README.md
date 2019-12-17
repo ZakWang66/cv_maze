@@ -1,4 +1,7 @@
 # cv_maze
+## usage
+roslaunch cv_maze run.launch
+
 ## Node Introduction
 ![Diagram](/images/node_diagram.PNG)
 ### Node corner_handle_action_server
