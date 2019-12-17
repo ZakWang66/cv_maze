@@ -5,7 +5,7 @@ import actionlib
 from cv_maze.msg import CornersAction, CornersResult, TurnAction, TurnGoal, ForwardAction, ForwardGoal, LineData
 
 CHANCE_LINE_THRESHOLD = 0.3
-SCAN_RANGE = 20
+SCAN_RANGE = 15
 
 line_info = None
 Moving = False

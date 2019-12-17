@@ -6,7 +6,7 @@ from cv_maze.srv import Pid
 import actionlib
 from cv_maze.msg import CornersAction, CornersGoal, LineData
 
-FORWARDING_SPD = 0.06
+FORWARDING_SPD = 0.07
 
 line_info = None
 inCorner = False
@@ -74,6 +74,8 @@ while not rospy.is_shutdown():
         if leftLine is None and rightLine is None:
             if frontLine is not None:
                 err = frontLine[4] * 10
+            else:
+                err = 10
         else:
             dummyLineIntersect = h - 20
             if leftLine is not None:

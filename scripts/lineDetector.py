@@ -7,6 +7,8 @@ from cv_maze.msg import LineData
 from sensor_msgs.msg import CompressedImage
 # from sensor_msgs.msg import Image
 
+HORIZONTAL_K = 0.08
+
 
 def image_callback(msg):
 
@@ -47,7 +49,6 @@ def image_callback(msg):
     frontLine = None
     minK = 0
     maxK = 0
-    horizentalK = 0.05
     maxY = 0
     # print(len(lines))
     if lines is not None:
@@ -76,7 +77,7 @@ def image_callback(msg):
                     minK = k
                     rightLine = x1, y1, x2, y2, k
 
-            elif abs(k) < horizentalK:
+            elif abs(k) < HORIZONTAL_K:
                 testLine = x1, y1, x2, y2, k
                 maxH = calcY(testLine, w / 2)
                 if maxH > maxY:
@@ -90,7 +91,7 @@ def image_callback(msg):
     # determin whether there are walls at left, right and front
     # Get 9*9 average color to recognize whether it is a cross road or dead end
 
-    img = numpy.copy(image)
+    # img = numpy.copy(image)
     wallFront = False
     wallLeft = False
 
@@ -112,7 +113,7 @@ def image_callback(msg):
                     continue
                 averageFront += mask[i][j]
                 count += 1
-                img[i, j, :] = mask[i, j]
+                # img[i, j, :] = mask[i, j]
         if count != 0:
             averageFront /= count
         if averageFront > 127:
@@ -132,7 +133,7 @@ def image_callback(msg):
                     continue
                 averageLeft += mask[i][j]
                 count += 1
-                img[i, j, :] = mask[i, j]
+                # img[i, j, :] = mask[i, j]
         if count != 0:
             averageLeft /= count
         if averageLeft > 127:
@@ -141,18 +142,18 @@ def image_callback(msg):
     if rightLine is not None and len(rightLine) != 0:
         rightIntersect = calcY(rightLine, w)
 
-    if leftLine is not None and len(leftLine) != 0:
-        cv2.line(img, (leftLine[0], leftLine[1]), (leftLine[2], leftLine[3]), (0, 0, 255), 2)
-    if rightLine is not None and len(rightLine) != 0:
-        cv2.line(img, (rightLine[0], rightLine[1]), (rightLine[2], rightLine[3]), (0, 255, 255), 2)
-    if frontLine is not None and len(frontLine) != 0:
-        cv2.line(img, (frontLine[0], frontLine[1]), (frontLine[2], frontLine[3]), (0, 255, 0), 2)
+    # if leftLine is not None and len(leftLine) != 0:
+    #     cv2.line(img, (leftLine[0], leftLine[1]), (leftLine[2], leftLine[3]), (0, 0, 255), 2)
+    # if rightLine is not None and len(rightLine) != 0:
+    #     cv2.line(img, (rightLine[0], rightLine[1]), (rightLine[2], rightLine[3]), (0, 255, 255), 2)
+    # if frontLine is not None and len(frontLine) != 0:
+    #     cv2.line(img, (frontLine[0], frontLine[1]), (frontLine[2], frontLine[3]), (0, 255, 0), 2)
 
-    cv2.imshow("image", img)
-    cv2.imshow("hsv", hsv)
-    cv2.imshow("gray", grayImage)
-    cv2.imshow("edges", edges)
-    cv2.waitKey(3)
+    # cv2.imshow("image", img)
+    # cv2.imshow("hsv", hsv)
+    # cv2.imshow("gray", grayImage)
+    # cv2.imshow("edges", edges)
+    # cv2.waitKey(3)
 
     pubLine.publish(leftLine, rightLine, frontLine, wallLeft, False, wallFront, leftIntersect, rightIntersect, frontMidY, h, w)
 

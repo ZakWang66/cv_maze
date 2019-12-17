@@ -3,9 +3,9 @@ import rospy
 from collections import deque
 from cv_maze.srv import Pid, PidResponse
 
-PP = 0.0003
-II = 0
-DD = 0
+PP = 0.0005
+II = 0.00001
+DD = 0.000001
 HISTORY_SIZE = 10
 
 timeStamp_history = deque(maxlen=HISTORY_SIZE)

@@ -7,7 +7,7 @@ from cv_maze.msg import TurnAction, TurnResult, TurnFeedback
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 
-SPEED = 0.15
+SPEED = 0.20
 
 degree = 0
 lastDegree = 0

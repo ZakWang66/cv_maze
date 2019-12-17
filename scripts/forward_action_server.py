@@ -5,12 +5,12 @@ from geometry_msgs.msg import Twist
 import actionlib
 from cv_maze.msg import ForwardAction, ForwardResult
 
-SPEED = 0.04
+SPEED = 0.07
 
 
 def action_callback(goal):
 
-    print '[forward_action_server] start to go forward', goal.goalIncres
+    print '[forward_action_server] start to go forward', goal.goalIncre
     start_time = time.time()
     pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
 
