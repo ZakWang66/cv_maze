@@ -15,7 +15,7 @@ Finally, we have to determine which side or which part alone those lines is road
 
 ### Node main
 This node is going control the robot movement in maze, such as how to move straight, how to react to a corner. 
-![Diagram](/images/workflow.PNG)
+![workflow](/images/workflow.PNG)
 
 ### Node pid_service_server
 This node is a kind of a simple version PID. It gets some errors and calculate the pid value to make sure the robot move straight.
